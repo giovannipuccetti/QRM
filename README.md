@@ -11,7 +11,7 @@ made in Risk Management practice" is available as a
 
 - standard pdf and as a
 
-- R Bookdown/markdown source
+- R Bookdown/markdown source with figures
 
 You can just use the R codes from the source. If you want to compile it, you need:
 
