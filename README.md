@@ -2,7 +2,8 @@
 Sources and extra materials for the wannabe book 
 
 Giovanni Puccetti
-Quantitative Risk Management: a brief course.
+
+**Quantitative Risk Management: a brief course.**
 (chaper numbering will vary during completion)
 
 **SOURCES WILL BE AVAILABLE SOON in the main folder**
