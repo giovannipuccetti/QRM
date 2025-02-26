@@ -1,13 +1,18 @@
 # QRM
-Sources and extra materials for the book Quantitative Risk Management: a brief course.
+Sources and extra materials for the wannabe book 
+
+Giovanni Puccetti
+Quantitative Risk Management: a brief course.
 (chaper numbering will vary during completion)
 
-SOURCES WILL BE AVAILABLE SOON i nthe main folder
+**SOURCES WILL BE AVAILABLE SOON in the main folder**
 In case you need them please send an email to giovanniDOTpuccettiATunimiDOTit
 
 **Chapter 1**
-"Correlation: the most common mistakes
-made in Risk Management practice" is available as a 
+_"Correlation: the most common mistakes
+made in Risk Management practice" _
+
+is available as a 
 
 - standard pdf
 
