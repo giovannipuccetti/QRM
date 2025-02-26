@@ -2,7 +2,7 @@
 Sources and extra materials for the book Quantitative Risk Management: a brief course.
 (chaper numbering will vary during completion)
 
-SOURCES WILL BE AVAILABLE SOON 
+SOURCES WILL BE AVAILABLE SOON i nthe main folder
 In case you need them please send an email to giovanniDOTpuccettiATunimiDOTit
 
 **Chapter 1**
@@ -13,7 +13,7 @@ made in Risk Management practice" is available as a
 
 - paper on SSRN (this is an excerpt from the chapter) 
 
-- R Bookdown/markdown source with figures and all codes
+- R Bookdown/markdown source with all codes and figures (/Figures folder)
 
 You can just use the R codes from the source. If you want to compile it, you need:
 
