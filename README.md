@@ -9,9 +9,11 @@ In case you need them please send an email to giovanniDOTpuccettiATunimiDOTit
 "Correlation: the most common mistakes
 made in Risk Management practice" is available as a 
 
-- standard pdf and as a
+- standard pdf
 
-- R Bookdown/markdown source with figures
+- paper on SSRN (this is an excerpt from the chapter) 
+
+- R Bookdown/markdown source with figures and all codes
 
 You can just use the R codes from the source. If you want to compile it, you need:
 
