@@ -2,16 +2,14 @@
 Sources and extra materials for the wannabe book 
 
 Giovanni Puccetti
-
 **Quantitative Risk Management: a brief course.**
 (chaper numbering will vary during completion)
 
 **SOURCES WILL BE AVAILABLE SOON in the main folder**
 In case you need them please send an email to giovanniDOTpuccettiATunimiDOTit
 
-**Chapter 1**
-_"Correlation: the most common mistakes
-made in Risk Management practice" _
+**Chapter 1** 
+"Correlation: the most common mistakes made in Risk Management practice"
 
 is available as a 
 
