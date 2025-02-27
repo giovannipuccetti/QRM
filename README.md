@@ -17,7 +17,9 @@ is available as a
 
 - R Bookdown/markdown source (01-Correlation.Rmd) with all codes and figures (/Figures folder)
 
-You can just use the R codes from the source. If you want to compile it, you need:
+You can just use the R codes from the source by opening the file.
+
+If you want also to compile it, you need:
 
 - R https://www.r-project.org
 - Bookdown library https://bookdown.org
