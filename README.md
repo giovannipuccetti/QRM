@@ -13,9 +13,9 @@ is available as a
 
 - paper on SSRN (this is an excerpt from the chapter) https://dx.doi.org/10.2139/ssrn.5155665
 
-- standard pdf (included in the main folder)
+- standard pdf ( 01QRMbrief.pdf included in the main folder)
 
-- R Bookdown/markdown source with all codes and figures (/Figures folder)
+- R Bookdown/markdown source (01-Correlation.Rmd) with all codes and figures (/Figures folder)
 
 You can just use the R codes from the source. If you want to compile it, you need:
 
