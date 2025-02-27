@@ -15,7 +15,7 @@ is available as a
 
 - standard pdf
 
-- paper on SSRN (this is an excerpt from the chapter) 
+- paper on SSRN (this is an excerpt from the chapter) https://dx.doi.org/10.2139/ssrn.5155665
 
 - R Bookdown/markdown source with all codes and figures (/Figures folder)
 
