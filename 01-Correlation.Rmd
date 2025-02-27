@@ -1,0 +1,902 @@
+# Correlation: the most common mistakes made in Risk Management practice {#correlation}
+
+\pagenumbering{arabic}
+
+Pearson's correlation is the most widely used *and misused* measure of
+stochastic dependence between two random variables. This chapter aims to highlight some of the most common mistakes in the use of correlation that are made in risk management practice, as both a legacy and an update of the milestone pitfalls paper @EMNS02, and taking a numerical approach similar to what done in Section 2.6.1 of @HKMY18. 
+
+First of all, we recall the definition of Pearson's linear correlation coefficient which we will simply refer to as *correlation* in the remainder.
+On a given non-atomic probability space, let $X$ and $Y$ be two square integrable random variables (i.e.,  having finite second moments: $\mathbb{E}[X^2],\,\mathbb{E}[Y^2]<\infty$). Pearson's correlation coefficient is defined by
+
+$$
+\rho(X,Y)= \frac{\mathrm{cov}(X,Y)}{\sqrt{\mathrm{var}(X)}\sqrt{\mathrm{var}(Y)}},
+$$
+
+where $\mathrm{cov}(X,Y)=\mathbb{E}[(X-\mathbb{E}[X])(Y-\mathbb{E}[Y])]$ is the 
+*covariance* between $X$ and $Y$, $\mathrm{var}(X)=\mathrm{cov}(X,X)=\mathbb{E}[(X-\mathbb{E}[X])^2]$ is the *variance* and 
+$\mathbb{E}[X]$ the *expected value* (mean) of $X$ (analogously for $Y$). 
+In the following, all equalities involving random variables are intended with probability one. The *quantile* $F^{-1}$ of a distribution function $F$ is defined as
+\begin{equation*}
+F^{-1}(u)=\inf \left\{x\in A:F(x)\geq u \right\},\; u \in (0,1],
+\end{equation*}
+and $F^{-1}(0)=\inf \left\{x\in A:F(x)> 0 \right\}$. If $F$ is continuous and strictly increasing, $F^{-1}$ coincides with its unique inverse; see @EH13.
+
+The original scope of Pearson's correlation as pursued for instance in the early studies of @wH40 (translated in @wH94) and @mF51, was to provide a measure of similarity (association) between random variables. It is useful then to see how a higher correlation in fact corresponds to a higher similarity. Suppose that two square integrable random variables $X$ and $Y$ have fixed distribution $F$ and, respectively, $G$ (in what follows we denote this by $X \sim F$ and $Y\sim G$). Their covariance can be written as 
+\begin{equation*}
+\mathrm{cov}(X,Y)=\mathbb{E}[X\,Y-X\mathbb{E}[Y]-\mathbb{E}[X]Y+\mathbb{E}[X]\mathbb{E}[Y]]=\mathbb{E}[X\,Y]-\mathbb{E}[X]\mathbb{E}[Y].
+\end{equation*} 
+
+Since the first moments $\mathbb{E}[X]$ and $\mathbb{E}[Y]$ are given by the fixed distributions (as well as $\mathrm{var}(X)$ and $\mathrm{var}(Y)$), the only correlation term that depends on the similarity of the two random variables is $\mathbb{E}[X\,Y]$. Why the expectation of the product plays such a role? This can be explained via the formula
+\begin{equation}(\#eq:distance)
+\mathbb{E}[(X - Y)^2]= \mathbb{E}[X^2]-2\,\mathbb{E}[X\,Y]+\mathbb{E}[Y^2],
+\end{equation}
+from which it follows that the maximization of the expected product of two random variables is equivalent to the minimization of the average squared Euclidean distance between them (this holds analogously in multivariate spaces; see @gP22). The higher the expected product, the less the expected distance between the two random variables. This is why correlation in principle works as a measure of similarity.
+
+We believe that most misunderstandings about correlation originate from the fact that correlation is always told to assume values between $-1$ and $1$, these bounds identifying the case of perfect negative and perfect positive *linear* dependence. Though this statement is formally correct, confusion stems from the fact that these bounds are not always achieved and do not represent in general the minimum and maximal attainable values of correlation.
+
+Moreover, it is well known that if $X$ and $Y$ are square integrable and stochastically independent,
+one has $\mathbb{E}[X\,Y]=\mathbb{E}[X]\mathbb{E}[Y]$ and correlation is zero.
+However, the converse is not true, and in a strong sense. In the absence of further assumptions, a value of (sample) correlation close to zero does not have any relevant implication, and might derive from independence as well from perfect positive or negative dependence.
+
+Correlation finds its ideal environment in a family of fully specified statistical models closed under
+linear combinations, such as the multivariate Normal (Gaussian) or Student's t  distributions. In the lack of such (strong) assumptions, mistakes and wrong interpretations of correlation values may arise.
+
+To avoid some of the potential mistakes and misinterpretations that we discuss in what follows, we strongly suggest a straightforward alternative to correlation, which is *rank correlation*. To be safe in real practice, one should not compute correlation but correlation between *ranks*, something can always be done at very low computational extra effort. Rank correlation does not fix all problems of correlation, but it overcomes many: it is a quick, viable and better alternative to plain correlation.
+
+## Common mistakes
+
+Linear correlation has an appealingly simple definition, and can be easily computed or estimated.
+However, its definition is based on the assumption that the random variables involved have finite
+second moments, that is their variances (and therefore their means) have a finite value. 
+Overlooking this assumption is one of the most common mistakes made in practice: as all assumptions in mathematics, square integrability might be satisfied or not.
+
+### Mistake 1: "We can always estimate correlation" {-}
+
+First notice that requiring the finiteness of the variances implicitly implies that $\rho(X,Y)$ depends on the marginal distributions of $X$ and $Y$, something that is intrinsically against the scope of correlation, which should measure association of two random variables regardless of their distribution or of the scale upon which they have been measured. More on this will follow in Mistake 2! 
+
+Second, it is not always statistically obvious whether data are coming from a distribution having a finite variance or not. Suppose that one has to estimate the correlation between two random variables $X \sim F$ and $Y \sim G$ based on a number $N$ of independent joint observations 
+$$
+(x_i,y_i), \, i=1,\dots, N,
+$$ 
+coming from the random vector $(X,Y)'$. How can one realize whether $\rho(X,Y)$ actually exists? Computing sample correlation, an immediate operation in \textsf{R},
+does not answer the question since sample correlation is always finite, even when data are coming from a infinite variance distribution. A more in-depth investigation is then  called for.
+
+In order to check whether the moments of the underlying distributions exist or not, a very handy mathematical tool is the so-called *Mean-Excess (ME) function*. If $\mathbb{E}[X]$ is finite, the mean excess function $e(u)$ is defined by
+$$
+e(u)=\mathbb{E}[X-u\,|\,X>u],
+$$
+that is as the mean of exceedances of a random variable $X$ above a given threshold $u$. 
+The ME function is a distinctive mark of a distribution, like a fingerprint: each distribution has its own specific ME function and they all look different. For the $x$-data $x_1,\dots,x_N$, the sample version of the ME function is easily computed as  
+$$
+e_N(u)=\frac{\sum_{i=1}^N (x_i-u)I_{\{x_i>u\}}}{\sum_{i=1}^N I_{\{x_i>u\}}},
+$$
+which is simply the sum of the exceedances above the threshold $u$ divided by the number of data points exceeding $u$. The scatter plot of the ordered data 
+$$
+\{x_{(i)},e_N(x_{(i)}),\, i=1,\dots,N-1\}
+$$ 
+is called the *ME-plot*. In practice, instead of averaging the observations in a sample, the ME function/plot *averages their exceedances* with respect to a given threshold. 
+
+From the ME-plot of the data one can quickly retrieve relevant information for the random variable under study in the blink of an eye. A simple rule-of-thumb arises from Figure \@ref(fig:me), which shows the shape of the ME function for some commonly used  distributions. If the ME-plot is decreasing or constant, then the all moments of the distribution are likely to be finite (like in the Normal and Exponential cases); it the ME-plot is increasing or looks uncertain, it is necessary to perform a deeper statistical investigation before estimating moments-based statistics.
+
+```{r me, echo=FALSE, message=FALSE, out.width='100%', fig.align='center', fig.cap='Mean Excess (ME) function for some distributions having mean 1. The t and the Pareto distributions considered here do not possess a finite variance.'}
+N=100 # resolution of the ME-plot
+M=8 # upper x-limit of the ME-plot
+u=seq(0,M,length=N) # x-coordinates
+y=matrix(,nrow = N,ncol = 4) # y-coordinates
+## Loop to compute plot coordinates for various dfs standardized to have mean=1
+for (i in 1:N){
+## Normal ME-plot
+f <- function(x) {1-pnorm(x+u[i]-1)}
+y[i,1]=(as.numeric(integrate(f, lower = 0, upper=M)[1]))/(1-pnorm(u[i]-1))
+## Exponential
+y[i,2]=1
+## Student's t ME-plot
+v=2 #dof
+f <- function(x) {1-pt(x+u[i]-1,v)}
+y[i,3]=(as.numeric(integrate(f, lower = 0, upper=M)[1]))/(1-pt(u[i]-1,v))
+## Pareto
+y[i,4]=1+u[i]
+}
+## Create ME plots for various distributions
+matplot(u,y,xlim=c(0,M),ylim=c(0,4),type = "l",lty = c(1,2,3,4),
+xlab="threshold",ylab=" ",main="Mean Excess Function Plot (ME-plot)",
+col="black",lwd = 2,cex.lab=1.2,font.main=1,cex.main=0.9,cex.lab = 0.9)
+legend("right",legend=c("Normal","Exponential","Student's t","Pareto"), 
+lty=c(1,2,3,4),col="black",lwd=2,ncol=2,cex=0.8)
+```
+
+As an example, we generate a set of data $(x_i,y_i)$ from two independent distributions:
+a Normal distribution for the $x$-data and a Student's t distribution for the $y$-data.
+
+```{r, echo=TRUE}
+set.seed(100) # seed for reproducibility
+N=500 # number of simulations
+## Generate samples from X  and Y s.t.
+## mean and sample variance are approximately the same
+Y=rt(N,df=2) # t sample
+X=rnorm(N,mean=0,sd=sqrt(var(Y))) # Normal sample
+## Compute sample mean of X and Y
+c(mean(X),mean(Y))
+## Compute sample variance of X and Y
+c(var(X),var(Y))
+## Compute sample correlation between X and Y
+cor(X,Y)
+```
+
+The two data samples have approximately the same sample mean and sample variance,
+and sample correlation close to 0. Even if the two random variables generating the sample are stochastically independent, we will see in this example (and in the following ones) that a value of sample correlation close to zero does not have any practical implication on correlation.
+
+Figure \@ref(fig:meplot) illustrates the corresponding MEplot for the $x$- and $y$-data. The increasing ME-plot for the $y$-data raises a warning on the possibility that the corresponding distribution might not possess a finite variance.
+
+The $x$-sample has been generated from a standard Normal $N(0,1)$ distribution, for which all moments (not only the first and the second) exist, whereas the $y$-sample is coming from a Student's t with $\nu=2$ degrees of freedom,
+a distribution which does not possess a finite variance. While one, based on sample evidence, would be prompted to estimate a zero correlation between $X$ and $Y$, $\rho(X,Y)$ actually *does not exists*. This is a message that holds for any statistics (in particular for the mean of a distribution): 
+
+>Key message: Before estimating something, make sure that something exists!
+
+```{r meplot, echo=TRUE, message=FALSE, out.width='100%', fig.align='center', fig.cap='Mean Excess plot for two set of simulations having approximately the same sample mean and sample variance. The three largest observations are omitted.'}
+library(QRM) # we use QRM library for the MEplot function
+## Set scale for MEplots (three largest observations are omitted)
+m=0 # lower axis limit
+M=max(sort(X)[N-3],sort(Y)[N-3]) # upper axis limit
+## Create ME plots for x- and y- data
+par(mfrow = c(1, 2),pty="s",font.main=1)
+MEplot(X,xlim=c(0,M),ylim=c(0,M),xlab="",ylab="",main="Normal", 
+col = "black",lwd = 2,cex.lab = 1.2,cex.main = 0.9,cex.lab = 0.9)
+MEplot(Y,xlim=c(0,M),ylim=c(0,M),xlab="",ylab="",main="Student's t", 
+col = "black",lwd = 2,cex.lab = 1.2,cex.main = 0.9, cex.lab = 0.9)
+```
+
+### Mistake 2: "We estimated a moderate value of correlation so the risks are moderately dependent" {-}
+
+What are the minimum and maximum values attainable by correlation? Apparently there is an immediate answer to this question: $-1$ and $1$! Unfortunately, this is not (always) correct. In general, these values depend on the marginal distributions of the random variables considered and, surprisingly enough, they can be arbitrarily close to zero.
+
+We give a very simple but enlightening example. Consider a random variable $X_1 \sim F$ and a second random variable $Y_1$ being a linear function of $X_1$, namely $Y_1=a\,X_1$ for some $a>0$. In this case, the linear correlation between them is given by
+\begin{multline}(\#eq:cor1)
+\rho(X_1,Y_1)= \frac{\mathrm{cov}(X_1,aX_1)}{\sqrt{\mathrm{var}(X_1)}\sqrt{\mathrm{var}(aX_1)}}=\frac{a\,\mathrm{cov}(X_1,X_1)}{\sqrt{\mathrm{var}(X_1)}\sqrt{a^2\,\mathrm{var}(X_1)}}\\
+=\frac{a\,\mathrm{var}(X_1)}{|a|\sqrt{\mathrm{var}(X_1)}\sqrt{\mathrm{var}(X_1)}}=1.
+\end{multline}
+
+In fact, it is easy to show that $\rho(X,Y)=1$ if and only if $Y$ is a positive linear function of $X$ (as in the previous case) and $\rho(X,Y)=-1$ if and only if $Y$ is a negative linear function of $X$ (e.g. if in \@ref(eq:cor1) one has $a<0$). These lower and upper bounds represent the case of perfect positive and negative *linear* dependence and justify the name of *linear correlation*. In the following example, this is confirmed when $X_1$ is a Normal random variable, but one could choose an arbitrary square integrable distribution.
+
+```{r, echo=TRUE}
+set.seed(100) # seed for reproducibility
+N=10^6 # number of simulations
+X1=rnorm(N) # standard Normal N(0,1) sample
+a=3 # standard deviation of Y
+Y1=a*X1 # Y1 is a times X1 so has df N(0,a^2)
+## Compute sample correlation between X1 and Y1
+cor(X1,Y1)
+```
+
+Correlation is able to detect perfect linear dependence. On the other hand, correlation is short-sighted when non-linear dependency are brought into play. To see this, consider the random variables $X_2=\exp(X_1)$ and $Y_2=\exp(Y_1)$ (the exponential can be replaced by an arbitrary strictly increasing *non linear* function $f(X_1)$ and $f(Y_1)$).
+Applying the exponential to $X_1$ and $Y_1$ simply means that they are now measured on a different scale, so one should pretend or at least expect that the correlation between them remains unchanged. Unfortunately, this is not true and the correlation coefficient might be arbitrarily close to 0. 
+
+```{r, echo=TRUE}
+X2=exp(X1) # change of scale for X1 (which becomes LogNormal)
+Y2=exp(Y1) # change of scale for X2 (which becomes LogNormal)
+## Compute sample correlation between X2 and Y2
+cor(X2,Y2)
+```
+
+A relatively small value of correlation is intuitively interpreted as a modest association between the random variables, which instead are in this case perfectly dependent (via a strictly increasing function!).
+
+This misunderstanding originates from the naive assumption that, since correlation always lies between $-1$ and $1$, then a moderate value of correlation (like the one above computed) should reflect a moderate dependence between the risks. This is unfortunately not true, unless it is possible to establish a linear dependence between the random variables. This is true for two Normal variables, but not for two LogNormal ones (apart from when they have exactly the same distribution).
+
+So, what are the minimum and maximal values of linear correlation, and when are they attained?
+According to the formula \@ref(eq:distance), the higher the expected product $\mathbb{E}[X\,Y]$, the less the expected distance between the two random variables $X$ and $Y$.
+The question then becomes, for $X \sim F$ and $Y \sim G$, when does $\mathbb{E}[X\,Y]$ attain its minimal and maximal values?
+The answer goes back to the milestone result given in 
+Theorem 368 in @HLP34, where it is
+proved that the scalar product of two vectors is maximal when the components of the two vectors are similarly ordered (i.e., they are monotonic in the same sense, or comonotonic), and minimal when they are oppositely ordered (i.e., they are countermonotonic). 
+
+If $F$ and $G$ are continuous, via approximations of continuous distributions with discrete ones, one obtains that: $\mathbb{E}[X\,Y]$ is maximized when $Y$ is (almost surely) an increasing function of $X$ (we say that $X$ and $Y$ are *comonotonic*); minimized when $Y$ is (a.s.) a decreasing function of $X$ (we say that $X$ and $Y$ are *countermonotonic*); see for instance @PW15 for more details and a history of this result.
+
+::: {.theorem #maxmincor} 
+Assume that $X\sim F$ and $Y \sim G$, with $F$ and $G$ continuous and square integrable. Then we have that:
+
+a) $\mathbb{E}[X\,Y] \text{ is maximized when } Y=G^{-1}(F(X));$
+
+b) $\mathbb{E}[X\,Y] \text{ is minimized when } Y=G^{-1}(1-F(X)).$
+
+As a consequence, the range of possible values of $\rho(X,Y)$ forms a closed interval $[\rho_{\mathrm{min}},\rho_{\mathrm{max}}]$ with $\rho_{\mathrm{min}}<0<\rho_{\mathrm{max}}$. Since the distributions $F,G,$ and the corresponding quantile functions $F^{-1},G^{-1},$ are increasing, we have that: 
+
+- the maximum correlation $\rho_{\mathrm{max}}$ is attained if and only if $X$ and $Y$ are comonotonic; 
+
+- the minimum correlation $\rho_{\mathrm{min}}$ is attained if and only if $X$ and $Y$ are countermonotonic.
+:::
+
+Based on Theorem \@ref(thm:maxmincor), linear correlation (in case exists) always attains its minimum value under countermonotonicity and maximum value under comonotonicity. The attained extreme values, however, are equal to $-1$ and $1$ *only in the case* when the functional relationships $G^{-1}(F)$ and $G^{-1}(1-F)$ are *linear*. This is true for instance when $F$ and $G$ are assumed to belong to the same family of distributions closed under affine transformations, like in the case when the vector $(X,Y)$ is assumed to have a multivariate Normal distribution.
+
+In the general case when $F$ is not continuous, Theorem \@ref(thm:maxmincor) holds analogously. In general, $X$ and $Y$ are said to be comonotonic if they are both increasing function of a common random factor $U$ and they admit the representation $X=F^{-1}(U),\; Y=G^{-1}(U)$ for a uniform random variable $U \sim U(0,1)$. Analogously, $X$ and $Y$ are said to be countermonotonic if and only if  $X$ is an increasing, $Y$ a decreasing function of $U$: $X=F^{-1}(U),\; Y=G^{-1}(1-U)$; see Theorem 2 in @DDGKV02.
+
+Based on Theorem \@ref(thm:maxmincor), we have that the maximum value of correlation is given by
+\begin{equation}(\#eq:maxcor)
+\rho_{\max}(X,Y)=\int_{\mathbb{R}}x\,G^{-1}(F(x))\, f(x) dx = \int_0^1 F^{-1}(u)\,G^{-1}(u)\,du,
+\end{equation}
+where the second integral comes from the change of variable $u=F(x)$. Analogously, the minimal value of correlation is given by 
+\begin{equation}(\#eq:mincor)
+\rho_{\min}(X,Y)=\int_{\mathbb{R}}x\,G^{-1}(1-F(x))\, f(x) dx = \int_0^1 F^{-1}(u)\,G^{-1}(1-u)\,du.
+\end{equation}
+
+As it is illustrated in Figure \@ref(fig:maxmincorr), in the case of a Normal and a Student's t distribution correlation *never* attains the values $-1$ and $1$, and both maximal and minimal correlation goes to zero when the number of degrees of freedom of the t distribution approaches $2$ from above.
+
+```{r maxmincorr, echo=TRUE, message=FALSE, out.width='100%', fig.align='center', fig.cap='Maximal (solid curve) and minimal (dashed curve) values attainable by correlation between a standard Normal and a standard t distribution, computed versus the number of degrees of freedom of the t distribution.'}
+## Parameters of X
+meanx=0 # mean of X
+varx=1 # variance of X
+invx<-function(x){qnorm(x)} # Normal quantile function of X 
+N=100 #resolution of the correlation plot
+dof=seq(2,3,len=N) # points at which to compute correlation
+maxcor=seq(0,0,len=N) # vector to store max correlation
+mincor=seq(0,0,len=N) # vector to store min correlation
+## Loop to compute coordinates to plot
+for(i in 1:N) {
+## Parameters of Y
+meany=0 # mean of Y
+dofy=dof[i] # dof of Y
+vary=dofy/(dofy-2) # variance of Y
+invy<-function(x){qt(x,dofy)} # t quantile function of Y
+## Compute max/min correlation via numerical integration
+f<-function(u){invx(u)*invy(u)}
+g<-function(u){invx(u)*invy(1-u)}
+maxcor[i]=(as.numeric(integrate(f, lower = 0,
+upper=1)[1])-meanx*meany)/(sqrt(varx*vary))
+mincor[i]=(as.numeric(integrate(g, lower = 0, 
+upper = 1)[1])-meanx*meany)/(sqrt(varx*vary))
+}
+## Max/Min correlation plot
+matplot(dof,cbind(maxcor,mincor),xlim=c(2,3),ylim=c(-1,1),
+type="l",lty=c(1,2),xlab="dof",ylab=" ", 
+main="Attainable Correlations",col = "black",
+lwd = 2,font.main=1,cex.main=0.9,cex.lab=0.9)
+abline(h=1,lty=5)
+abline(h=-1,lty=5)
+abline(h=0,lty=5)
+legend("right",legend=c("Max correlation","Min correlation"), 
+lty =c(1,2),col="black")
+```
+
+\pagebreak
+::: {.example} 
+The example where $X_2$ and $Y_2$ are LogNormal distributions can be treated analytically as done in @QRM (Example 7.29).
+
+Assume that $X_1 \sim F=N(0,1)$ and $Y_1=\sigma\,X_1$ for some $\sigma>0$, hence  $Y_1 \sim G=N(0,\sigma^{2})$. The two distributions are *of the same type*, that is it is possible to establish a linear relationships between them. Either a positive one, by setting $Y_1= \sigma X_1$ 
+and in this case $\rho(X_1,Y_1)=1$, either a negative one, by setting $Y_1= -\sigma X_1$, and in this case $\rho(X_1,Y_1)=-1$; see \@ref(eq:cor1). As a consequence of the symmetry of the standard Normal distribution, correlation in this case truly belongs to the interval $[-1,1]$.
+
+If a change of scale occurs, things change.
+Assume that the random variables $X_1$ and $Y_1$ are transformed into 
+$X_2 = e^{X_{1}} \sim \mathrm{LogN}(0,1)$ and $Y_{2} = e^{Y_1}=e^{\sigma X_{1}} \sim \mathrm{LogN}(0,\sigma^{2})$.
+
+Even if the dependence structure between the two random variables is unchanged,
+the different scale makes it impossible to establish liner relationships as in the previous case. The only case where this is possible is $\sigma=1$, when the two random variables $X_2$ and $Y_2$ are identically distributed and it is possible to set $Y_2=X_2$ (but *not* $Y_2=-X_2$). As a result, for $\sigma \neq 1$, the correlation range will be strictly smaller than $[-1,1]$.
+
+To calculate the attainable value of correlation, observe that $Y_1$ and $Y_2$ are still comonotonic. Clearly, $\rho_{\mathrm{max}} = \rho(e^{X_1}, e^{\sigma {X_1}})$ and, by a similar argument, $\rho_{\mathrm{min}} = \rho(e^{X_1}, e^{-\sigma {X_1}})$. 
+
+Analytical calculations easily follow (see Exercise \@ref(exr:lognormcorr)) and yield
+\begin{equation}(\#eq:lognormal)
+\rho_{\mathrm{max}}=\frac{e^\sigma-1}{\sqrt{(e - 1)(e^{\sigma^2} - 1)}}, \quad \rho_{\mathrm{min}}=\frac{e^{-\sigma}-1}{\sqrt{(e - 1)(e^{\sigma^2} - 1)}}.
+\end{equation}
+
+Figure \@ref(fig:logncorr) shows the range of attainable correlation values for different values of $\sigma$. As previously noted, for $\sigma=1$ one has $\rho_{\mathrm{max}}=1$ and $\rho_{\mathrm{min}}>-1$.
+
+Also, the range rapidly narrows to a neighborhood of zero as $\sigma$ gets larger.
+Table \@ref(tab:tablecor) shows, for $\sigma =5$, that the maximal value attained by correlation is $\rho_{\mathrm{max}}=0.0004191$, while the minimal is $\rho_{\mathrm{min}}=-0.0000028$. 
+
+```{r logncorr, echo=FALSE, message=FALSE, out.width='100%', fig.align='center', fig.cap='Maximal (solid curve) and minimal (dashed curve) values attainable by correlation between between two LogNormal random variables $Y_1 \\sim$ LogN$(0,1)$ and $Y_2 \\sim$ LogN$(0, \\sigma^2)$, computed versus the value of $ \\sigma$.'}
+## Plot attainable values of correlation for the LogNormal example
+curve((exp(x)-1)/sqrt((exp(1)-1)*(exp(x^2)-1)),from=0,to=5,
+ylim=c(-1,1),col="black",main="Attainable correlations",lty=1,lwd = 2,
+xlab=expression(sigma),ylab = " ",cex.lab=0.9,font.main = 1,cex.main = 0.9)
+curve((exp(-x)-1)/sqrt((exp(1)-1)*(exp(x^2)-1)),
+col="black",lty=2,lwd = 2,add = TRUE)
+legend("bottomright", col="black",lty=c(1,2),lwd = 2,
+legend = c("Max correlation", "Min correlation"))
+abline(h=1,lty=5)
+abline(v=1,lty=5)
+abline(h=-1,lty=5)
+abline(h=0,lty=5)
+```
+
+```{r tablecor, echo=FALSE, out.width='100%', fig.align='center'}
+# Load packages knitr and kableExtra
+library(knitr) 
+library(kableExtra)
+
+# Values of sigma
+values = c(1, 2, 3, 4, 5) 
+
+# Initialize the matrix to store the results
+result_matrix = matrix(nrow = length(values), ncol = 3)
+
+# Cicle for to determine the max and min value of correlation given different sigma
+for (i in 1:length(values)) {
+  
+  # Max and min correlation
+  max = (exp(values[i]) - 1)/(sqrt((exp(1) - 1)*(exp(values[i]^2) - 1)))
+  min = (exp(-values[i]) - 1)/(sqrt((exp(1) - 1)*(exp(values[i]^2) - 1)))
+  
+  # Store the values and add them to the results matrix
+  correlation = c(values[i], min, max)
+  result_matrix[i,] = correlation
+}
+# Set column and row names
+colnames(result_matrix) = c(" $\\sigma$ ", "Minimal Correlation", "Maximal Correlation")
+rownames(result_matrix) = c("1", "2", "3", "4", "5")
+
+# Print table with values of max and min correlation
+kbl(result_matrix, align = "c", booktabs = TRUE, caption = "Minimal and maximal  attainable correlation between two Log-normal random variables $Y_1 \\sim$ LogN$(0,1)$ and $Y_2 \\sim$ LogN$(0, \\sigma^2)$ for some values of $ \\sigma$.") %>%
+  kable_classic(full_width = FALSE) %>%
+  kableExtra::kable_styling(latex_options = "striped") %>%
+  kableExtra::kable_styling(latex_options = "hold_position")
+```
+:::
+
+Figure \@ref(fig:corfig) summarizes the above results: the maximum value of correlation is attained in the case of perfect positive dependence (comonotonicity), and the minimum value of correlation is attained in the case of perfect negative dependence (countermonotonicity). 
+However, the corresponding attained values are $-1$ and $1$ if and only if these dependency are linear, otherwise the minimal value will be strictly larger than $-1$ and the maximal value strictly smaller than \(1\).
+
+\pagebreak
+
+```{r corfig, echo=FALSE, fig.align = 'center', out.height='100%', fig.cap=" Range of attainable correlation ($a>0$). "}
+knitr::include_graphics("Figures/maxmincorr.png")
+```
+
+Fortunately, there is a quick remedy to correct the scale of attainable values of correlation.
+If one wants to preserve the value of correlation against increasing transformations of the random variables involved, it is sufficient to compute sample correlation *between ranks*. 
+This corresponds to the estimation of Spearman rank correlation coefficient; see @HKMY18 for a definition.
+
+Rank correlation will always exist and be between $-1$ and $1$, and the two bounds will correspond to countermonotonicity and comonotonicity. In the previous example, when encountering a moderate value of rank correlation one can at least say that the random variables involved are not perfectly associated (something which would remain uncertain if plain correlation is used).
+
+In principle, the original sin of correlation lies in its denominator, which standardizes 
+correlation only with respect to the value assumed in case of perfect linear dependence. When linear dependence cannot be attained, the correct scaling is lost. 
+Another way of using the full range of values in $[-1,1]$ for correlation values would be that of standardizing $\text{cov}(X,Y)$ by the values \@ref(eq:maxcor) and \@ref(eq:mincor) attained by correlation under comonotonicity and countermonotonicity (though in general these require integration and they are not symmetric): this is the approach taken in @ai2024adjust. Also for random vectors in a multivariate space, computing correlation between ranks seems a safe alternative; see @gP22.
+
+```{r, echo=TRUE}
+## Compute correlation between ranks
+Y1<-rank(Y1) # ranks of Y1
+Y2<-rank(Y2) # ranks of Y2
+## Compute sample correlation between ranks
+cor(Y1,Y2)
+```
+> Key message: Do not use correlation, use correlation *between ranks*!
+
+### Mistake 3: "We estimated an almost zero correlation so the risks are independent " {-}
+
+It is well known that if $X$ and $Y$ have finite variances and are independent, then $\rho(X,Y)=0$.
+This implication is typically a source of confusion, because one naively associates a sample correlation close to zero with independence. However, the converse implication is false: uncorrelatedness in general does not imply independence and, actually, does not deliver a particular information unless a full joint model for $(X,Y)$ is specified.
+
+The classical example is to assume that $X \sim N(0,1)$ and \(Y=X^2\): $X$ and $Y$ are functionally dependent since the value of $X$ determines the value of $Y$, nevertheless $\rho(X,Y)=0$. We illustrate this in the following pedagogical example.
+
+```{r, echo=TRUE}
+set.seed(100) # seed for reproducibility
+N=10^6 # number of simulations
+X=rnorm(10^6) # standard Normal sample
+Y=X^2 # Y is X squared (so not independent from X)
+cor(X,Y) # sample correlation between X and Y
+```
+
+In general, we can give the following proposition as a more general counterexample.
+
+::: {.proposition} 
+Let the random variable $X$ be symmetric (around zero) and assume that
+$\mathbb{E}[X^{2k+1}]$ is finite for some integer $k$.
+Then $$\rho(X,X^{2k})=0.$$
+:::
+::: {.proof} 
+Being $X$ symmetric, notice that $\mathbb{E}[X^{2i+1}]=0, \, 0 \leq i \leq k$. Hence
+\begin{align*}
+\mathrm{cov}(X,X^{2k})=\mathbb{E}[(X-\mathbb{E}X)(X^{2k}-\mathbb{E}[X^{2k}])=\mathbb{E}[X(X^{2k}-\mathbb{E}[X^{2k}])] \\
+=\mathbb{E}[X^{2k+1}]-\mathbb{E}[X]\mathbb{E}[X^{2k}]=\mathbb{E}[X^{2k+1}]=0,
+\end{align*}
+therefore we have that $\rho(X,X^{2k})=0$.
+:::
+
+Unfortunately, not even computing rank correlation would help in the above case.
+
+```{r, echo=TRUE}
+cor(rank(X),rank(Y))  # sample rank correlation between X and Y
+```
+
+Indeed, while independence between two random variables is sufficient for correlation and for rank correlation to vanish, it is not necessary.  It would be desirable to have a dependence measure being $-1$ if and only if the random variables are countermonotonic, $1$ if and only if the random variables are comonotonic, and $0$ if and only if the random variables are independent (notice that only the last "only if" is not satisfied by rank correlation).
+Unfortunately, as shown in @mS84 and Section 4.2 in @EMNS02, a senseful dependence measure with such properties does not exist.
+
+As a consequence, one should not produce implications from having a low value of sample correlation. A sample correlation value close to zero could have been produced by independence, or by perfect positive dependence, or even by perfect negative dependence. At least, with rank correlation, a value smaller than $1$ (bigger than $-1$) implies that the random variables considered are not perfectly positively (negatively) dependent.
+
+> Key message: Correlation is zero, so $\dots$ what?
+
+### Mistake 4: "The VaR for the sum of Normal risks is maximal under maximal correlation" {-}
+
+Value-at-Risk (VaR) is one of the most popular and widely used risk measures in banking, finance and insurance. The *Value-at-Risk* of a loss random variable (risk) $X \sim F$, computed at the probability level $\alpha \in (0, 1)$, is the $\alpha$-quantile of its distribution $F$, that is
+$$
+\VaR(X)=F^{-1}(\alpha)=\inf\{x \in \mathbb{R}: F(x) \geq \alpha\}.
+$$
+If $F$ is continuous and strictly increasing, then $q=\VaR(X)$ is the unique real number such that $F(q)=\alpha$, so $\VaR(X)$ is usually interpreted as the minimum amount of money that will be sufficient (under the prescribed model $F$) to cover the losses coming from $X$ with probability $\alpha$. Coherently with this interpretation, in risk management regulation the confidence level $\alpha$ is usually chosen close to $1$, e.g. $\alpha=0.95, 0.975, 0.99, \dots,$ depending on the typology of the underlying risk $X$.
+
+The VaR for a sum is straightforward to compute in the case the random variables are comonotonic. It is a simple probability exercise to show the following theorem (which holds analogously for the sum of an arbitrary number of random variables).
+
+::: {.theorem #maxVaR} 
+Assume that $X\sim F$ and $Y \sim G$ are comonotonic. Then, for $\alpha \in (0,1)$, we have that
+\begin{equation}(\#eq:comvar)
+\VaR(X+Y)=\VaR(X)+\VaR(Y) = F^{-1}(\alpha)+ G^{-1}(\alpha).
+\end{equation}
+:::
+::: {.proof} 
+Assume that $X\sim F$ and $Y \sim G$ are comonotonic.
+Then, they admit the representation 
+$X=F^{-1}(U)$, $Y=G^{-1}(U)$, with $U\sim U(0,1)$. Since $F^{-1}$ and $G^{-1}$
+are increasing, then also the function $\phi=F^{-1}+G^{-1}$ is increasing.
+Recalling that $\VaR(\phi(U))=\phi(\VaR(U))$ for any increasing function $\phi$,
+one obtains that
+\begin{multline*}
+\VaR(X+Y)=\VaR(F^{-1}(U)+G^{-1}(U))=\VaR(\phi(U))=\phi(\VaR(U))
+\\=\phi(\alpha)=F^{-1}(\alpha)+G^{-1}(\alpha)=\VaR(X)+\VaR(Y).
+\end{multline*}
+An analogous proof holds for an arbitrary number of comonotonic random variables.
+:::
+
+
+Since the comonotonic case corresponds to maximal correlation, 
+it is a common (and naive) conclusion to believe that the above formula provides the maximal attainable VaR. Unfortunately, this is in general not true.
+
+Another concern regards the set-up of a risk management framework. Very often, the assumption of having two Normal random variables $X\sim N(0,1)$ and $Y \sim N(0,1)$ ("We have Normal risks") is confused with the much stronger assumption that the random vector $(X,Y)'$ is Normal ("We have a Normal *vector*"). This latter assumption, compared to the first, includes the typology of (Normal) dependence between the risks.
+If one considers the weaker assumption of having two random variables individually distributed like a standard Normal distribution, formally $X\sim N(0,1)$ and $Y \sim N(0,1)$,
+the maximum attainable VaR and the joint distribution attaining it can be computed analytically (see @gdM81, @lR82, and @WW11 for more than two random variables) or numerically via the [*Rearrangement Algorithm*](https://sites.google.com/site/rearrangementalgorithm/home).
+Denoting by $\Phi$ the standard Normal distribution one has that the 
+worst VaR for the sum of two standard Normal risk is equal to 
+$$
+\VaR(X^*+Y^*)=2\Phi^{-1}\left(\frac{\alpha+1}{2}\right),
+$$
+while the comonotonic VaR, according to \@ref(eq:comvar), is smaller and given by
+$$
+\VaR(X^C+Y^C)=2\Phi^{-1}(\alpha);
+$$
+see a numerical comparison in Table \@ref(tab:worstvar).
+\pagebreak
+
+```{r, echo=FALSE, message=FALSE, out.width='100%', fig.align='center'}
+alpha=.90 # VaR confidence level
+N=100 # number of points in the support of the TAIL approximation of each marginal distribution (the larger N, the more accurate, the more time expensive the algorithm)
+## Build marginals approximation
+X=matrix(rep(qnorm(seq(alpha,1,length=N+1)),2),nrow=N+1)
+LX=X[1:N,] # approximation of the marginals from below
+UX=X[2:(N+1),] # approximation of the marginals from above
+# Rearrangement algorithm 
+epsilon=0.001 # desired accuracy
+LVaR=Inf # recursive value for the worst possible VaR
+delta=Inf # difference between two consecutive estimates 
+## Iteratively rearrange each column of LX until the difference between
+## two consecutive estimates of the worst VaR is less than epsilon
+while(delta >epsilon ){
+LVaRtemp=LVaR # auxiliary variable
+## Rearrangement loop
+for(j in 1:2) {
+LX[,j]=sort(LX[,j],decreasing=TRUE)[rank(LX[,c(1:2)[-j]])] }
+LVaR= min(rowSums(LX))
+delta=abs(LVaR-LVaRtemp)
+}
+## Iteratively rearrange each column of UX until the difference between
+## two consecutive estimates of the worst VaR is less than epsilon
+UVaR=Inf # recursive value for the worst possible VaR
+delta2=Inf # difference between two consecutive estimates
+## Rearrangement loop
+while(delta2 >epsilon ){
+UVaRtemp=UVaR # auxiliary variable
+## Rearrangement loop
+for(j in 1:2) {
+UX[,j]=sort(UX[,j],decreasing=TRUE)[rank(UX[,c(1:2)[-j]])] }
+UVaR= min(rowSums(UX))
+delta2=abs(UVaR-UVaRtemp)
+}
+comvar=2*qnorm(alpha) # VaR under comonotonicity
+wvar=2*qnorm((alpha+1)/2) # worst VaR
+#sprintf("Worst VaR is in the interval [%f,%f]", LVaR, UVaR)
+#sprintf("expression(alpha)=%f", alpha)
+#sprintf("Worst VaR is %f", wvar)
+#sprintf("Comonotonic VaR is %f", comvar)
+```
+
+```{r worstvar, echo=FALSE, out.width='100%', fig.align='center'}
+## Load packages knitr and kableExtra
+library(knitr) 
+library(kableExtra)
+
+## Values of alpha
+values = c(0.90, 0.95, 0.99, 0.995) 
+
+## Initialize the matrix to store the results
+result_matrix = matrix(nrow = length(values), ncol = 3)
+
+## Loop  to determine comonootnic and worst var for different values of alpha
+for (i in 1:length(values)) {
+  comvar=2*qnorm(values[i]) # comonotonic VaR
+  wvar=2*qnorm((values[i]+1)/2) # worst VaR
+  ## Store the values and add them to the results matrix
+  result_matrix[i,] = c(values[i], comvar, wvar)
+}
+# Set column names
+colnames(result_matrix) = c(" $\\alpha$ ", "Comonotonic VaR", "Worst-case VaR")
+# Print table with values of max and min correlation
+kbl(result_matrix, align = "c", booktabs = TRUE, caption = "Comonotonic VaR and worst-case VaR for the sum of two standard Normal random variables, computed at some tipically used (high) values of $\\alpha$.") %>%
+  kable_classic(full_width = FALSE) %>%
+  kableExtra::kable_styling(latex_options = "striped") %>%
+  kableExtra::kable_styling(latex_options = "hold_position")
+```
+
+In Figure \@ref(fig:wvar), left, we represent the bivariate distribution of $(X,Y)$  which maximizes $\VaR(X+Y)$ for $\alpha=0.90$. 
+
+In order to maximize the $\alpha$-quantile of a sum, only the largest $(1-\alpha)$ part of the marginal probability mass is relevant, so it does not matter where the smallest $\alpha$ probability mass is spread on the left part of the figure, provided it is coherent with the assumed margins.  
+
+The relevant $(1-\alpha)$ part of the probability mass, spread on the right part of the figure, is used to make the sum of the random variables be (as close as possible to) a constant. 
+In fact, the probability of exceeding the $\alpha$-quantile of a distribution is $(1-\alpha)$. If more probability is concentrated around (or exactly in) a single point, this will help to pull the quantile further in the right part of the distribution. 
+In the case of Normal marginals, it is not possible to obtain exactly a constant in this part so the one in the figure is the joint distribution closest to it.
+
+As a result, the solution in Figure \@ref(fig:wvar) is a mix of positive (on the left) and negative (on the right) dependence: it is then not surprising that the implied value of correlation between $X$ and $Y$ is not maximal, i.e., is smaller than one (in this case of identical marginals, the maximal attainable correlation is truly 1). Moreover, since the smallest $\alpha$ probability mass on the left of the figure can be spread arbitrarily, one could also achieve smaller values of correlations.
+
+```{r wvar, echo=FALSE, message=FALSE, out.width='94%', fig.align='center', fig.cap='2000 simulated points from two different bivariate distributions with the same standard Normal marginals and the same value of correlation. The left picture shows data from the distributions attaining the maximum VaR for the sum of its components at the confidence level $ \\alpha=0.90$; the right picture shows a bivariate Gaussian distribution with the same value of correlation between its components.'}
+M=as.integer(alpha*N/(1-alpha)) # number of additional points in the left part of the marginals supports
+## Generate the joint dependence maximizing VaR
+## Left alpha-part of the dependence can be chosen arbitrarily
+LXa=matrix(rep(qnorm(seq(0,alpha,length=M)),2),nrow=M) # set as comonotonicity
+A=rbind(LXa[2:M,],LX) # final support of the solution
+## Generate joint normal distribution with same marginals and same correlation
+library(MASS)
+set.seed(200) #seed for reproducibility
+B = mvrnorm(M+N,c(0,0),cor(A)) # simulations
+## Create Figure
+par(mfrow = c(1, 2), pty="s", mai = c(0,0.45,0.35,0.3), mgp = c(1.5, 0.4, 0), font.main=1)
+plot(A, pch = 20, col = "black", cex = 0.25,
+     cex.main = 0.9, cex.lab = 0.75, cex.axis = 0.75,
+     xlab = expression(X), ylab = expression(Y), 
+     main = "Worst VaR", ylim = c(-4, 4), 
+     xlim = c(-4, 4), font.main=1, cex.main=0.75)
+
+# Add a bar X below the x-axis
+A_x = A[, 1]  # Extract X1 values
+rect(-4, -4.4, 4, -4.1, col = "white")
+points(x = A_x, y = rep(-4.25, length(A_x)), pch = 20, col = "black", cex = 0.125)
+
+# Add a bar for Y next to the y-axis
+A_y = A[, 2]  # Extract X2 values
+rect(-4.4, -4, -4.1, 4, col = "white")
+points(x = rep(-4.25, length(A_y)), y = A_y, pch = 20, col = "black", cex = 0.125)
+
+plot(B, pch = 20, col = "black", cex = 0.25,
+     cex.main = 0.9, cex.lab = 0.75, cex.axis = 0.75,
+     xlab = expression(X), ylab = expression(Y), 
+     main = "Bivariate Normal", ylim = c(-4, 4), 
+     xlim = c(-4, 4), font.main=1, cex.main=0.75)
+
+# Add a bar X below the x-axis
+B_x = B[, 1]  # Extract X1 values
+rect(-4, -4.4, 4, -4.1, col = "white")
+points(x = B_x, y = rep(-4.25, length(B_x)), pch = 20, col = "black", cex = 0.125)
+
+# Add a bar for Y next to the y-axis
+B_y = B[, 2]  # Extract X2 values
+rect(-4.4, -4, -4.1, 4, col = "white")
+points(x = rep(-4.25, length(B_y)), y = B_y, pch = 20, col = "black", cex = 0.125)
+```
+The solution in Figure \@ref(fig:wvar) is typically regarded by practitioners as "too weird to be true". However, from a mathematical perspective (but are others possible?), the maximization of VaR is an optimization problem. Unless further assumptions are imposed, Figure \@ref(fig:wvar) represents its solution.
+
+Figure \@ref(fig:wvar) also remarks the fact that assuming the individual marginals of $X$ and $Y$, and fixing the value of correlation $\rho(X,Y)$, is not sufficient to univocally identify 
+a joint distribution. This is exactly why it is so important to clearly specify the assumptions used within a risk management framework. 
+
+Assuming that the vector $(X,Y)'$ (notice the brackets) has a *bivariate* Normal distribution (Figure \@ref(fig:wvar), right) would immediately wipe off the previous worst-case solution. However, even with this stronger assumption, we still need an extra hypothesis to guarantee that the VaR is maximized under comonotonicity: the confidence level $\alpha$ has to be larger than $0.5$, as the following example shows.
+
+::: {.example}
+Suppose that the vector $(X,Y)'$ has a bivariate Normal distribution with standard Normal marginals $\Phi$. If $X$ and $Y$ are assumed to be comonotonic, then correlation is maximal and equal to 1. In this case $X=Y$ and one has $X+Y=2X\sim N(0,4)$. Under comonotonicity then
+$$
+\VaR(X^C+Y^C)=2\Phi^{-1}(\alpha);
+$$
+see also \@ref(eq:comvar). If $X$ and $Y$ are assumed to be independent, then correlation is null and $X+Y\sim N(0,2)$ (under independence the variance of a sum is the sum of variances). Under independence then
+$$
+\VaR(X^{\perp}+Y^{\perp})=\sqrt2\Phi^{-1}(\alpha).
+$$
+Since $\Phi^{-1}(\alpha)$ is negative when $\alpha <0.5$, one has that 
+$$
+\VaR(X^{\perp}+Y^{\perp})>\VaR(X^C+Y^C) \; \text{ for all } \;\alpha<0.5,
+$$
+i.e. the VaR of a sum under independence is bigger than the VaR under comonotonicity.
+:::
+
+There are other examples of "regular" assumptions for which the sum of the marginal VaRs (the value attained under comonotonicity) is not the worst possible VaR. Figure \@ref(fig:paretosum) shows that for the sum of two Pareto distributed risks with infinite mean, independence is  more dangerous than comonotonicity, for *any* value of $\alpha \in (0,1)$ (see @CEW25 for a formal proof), yet not being the worst-possible value.
+
+```{r paretosum,  echo=TRUE, out.width='40%', fig.align='center', fig.cap='VaR of the sum of two risks identically distributed like a Pareto($\\theta$), i.e. $F(x)=1-(1+x)^{-\\theta},\\, x\\ge 0$, with tail parameter $\\theta =0.9$ (infinite-mean model), under the assumptions of independence, comonotonicity, and worst-case scenario.'}
+set.seed(200) # seed for reproducibility
+theta=0.9 # Pareto tail parameter (theta<1 means infinite mean)
+N=10^5 # number of simulations
+alpha=seq(0.01,0.99,0.001) # values at which to draw the plot
+qp=function(x){(1-x)^(-1/theta)-1} # Pareto quantile function
+U1=runif(N) # U(0,1) simulation
+U2=runif(N) # U(0,1) simulation
+I=qp(U1)+qp(U2) # sum of two independent Pareto
+VaR_ind=quantile(I,probs=alpha,type=1) # VaR calculation
+C=qp(U1)+qp(U1) # sum of two comonotonic Pareto
+VaR_com=quantile(C,probs=alpha,type=1) # VaR calculation
+## Analytical computation of worst VaR
+VaR_max=2*qp((alpha+1)/2) # VaR calculation
+## Plot VaR against confidence level
+par(pty="s",mai=c(0.8,0.4,0.4,0.4),font.main=1)
+plot(alpha,VaR_ind,type="l",col="black",xlab=expression(alpha),
+ylab="VaR",ylim=c(0,20),
+main="VaR of the sum of two Pareto risks with infinite mean",
+lwd=2,lty=2,cex = 0.25,cex.main=0.9,cex.lab=0.9,cex.axis=0.9)
+lines(alpha,VaR_com,type="l",col="black",lty=1,lwd = 2)
+lines(alpha,VaR_max,type="l",col="black",lty=3,lwd = 2)
+legend("topleft",legend=c("Worst-case","Independence",
+"Comonotonicity"),col = "black",lty=c(3,2,1), lwd=c(2,2,2))
+```
+
+> Key message: In general, an higher correlation does *not* imply a higher VaR.
+
+
+### Mistake 5: "We can freely stress-test correlation matrices" {-}
+
+For a multivariate random vector $(X_1,\dots,X_d)'$, the *covariance matrix*  $\Sigma=\sigma_{ij}$ is a square matrix showing the covariance $\sigma_{ij}=\text{cov}(X_i,X_j), \, 1 \leq i,j \leq d,$ between each pair of marginal components:
+$$ \Sigma = \begin{pmatrix} \sigma_{11} & \sigma_{12} & \ldots &\sigma_{1d} \\ \sigma_{21} & \sigma_{22} & \ldots & \sigma_{2d} \\ \vdots & \vdots & \ddots & \vdots \\ \sigma_{d1} & \sigma_{d2} & \ldots & \sigma_{dd} \end{pmatrix}.$$
+The diagonal elements of $\Sigma$, $\sigma_{ii}=\text{cov}(X_i,X_i)=\text{var}(X_i), \, 1 \leq i \leq d$, are the $d$ variances of the marginal components. In the case these variances are standardized to 1, we speak of a *correlation matrix* (in this latter case we have that $\sigma_{ij}=\rho(X_i,X_j)$).
+
+It immediately follows from the definition that a covariance (correlation) matrix is symmetric, but it is important to notice that not all the symmetric matrices can be covariance (correlation) matrices. To be such, a matrix has to satisfy a special algebraic property, that is has to be positive semidefinite. For any further detail about this requirement, we refer to the classical reference @rB07. 
+
+::: {.theorem}
+A symmetric matrix $\Sigma$ is a covariance matrix if and only if it is positive semidefinite, that is if and only if
+\begin{equation}(\#eq:psd)
+a' \,\Sigma \, a \geq 0, \,\text{ for all }\,  a'=(a_1,\dots,a_d) \in \mathbb{R}^d,
+\end{equation}
+:::
+The meaning of this requirement is illustrated in the following example.
+
+::: {.example}
+Consider a $d$-variate random vector $X=(X_{1},\dots,X_{d})'$ having finite correlation matrix $\Sigma$. Let the random vector $Y=a'X$ be a linear combination of $X$. For example, if $X$ are the daily joint log-returns of a given portfolio of assets at a specific trading desk, the random variable
+$$
+Y=a_1X_1+\dots+a_dX_d
+$$ 
+may represent the linearized profit/loss operator for such portfolio. The variance of $Y$ can be easily computed by the formula
+$$
+\mathrm{var}(Y)=\mathrm{cov}(Y,Y)=a' \,\Sigma\,a.
+$$
+Since such variance must be non-negative for any possible choice of weights, one has 
+$$
+a' \,\Sigma \, a \geq 0, \,\text{ for all }\,  a'=(a_1,\dots,a_d) \in \mathbb{R}^d,
+$$
+which is the requisite in \@ref(eq:psd).
+:::
+
+Care has therefore to be taken when one manipulates covariance matrices:
+if the covariance matrix of $X$ fails to be positive semidefinite, it becomes possible to find a specific set of weights $a_{1}^*,\dots,a_{d}^*,$ such that the variance of the linear combination $a_{1}^*X_{1}+\dots+a_{d}^*X_{d}$ is negative. As a consequence, any probabilistic model based on a matrix $\Sigma$ not satisfying \@ref(eq:psd) has to be deemed as not consistent.
+
+Fortunately, there exist a straightforward computational method to check whether \@ref(eq:psd) is satisfied.
+
+::: {.theorem  #eigen}
+A symmetric matrix $\Sigma$ with real entries is positive semidefinite if and only if all its eigenvalues are non-negative.
+:::
+
+Figure \@ref(fig:solvency) shows a correlation matrix widely used in Risk Management, as given in the Annex IV, point (1), of the [*Solvency II*](https://eur-lex.europa.eu/legal-content/EN/ALL/?uri=CELEX:02009L0138-20190113#id-c9d14c8d-a146-4baa-8a1e-f61883ee4d99) directive for the calculation of the Solvency Capital Requirement (SCR) Standard Formula. We have a random vector consisting of $d=5$ risks $(X_1,\dots,X_5)'$ namely: *market*, counterparty *default*, *life* underwriting, *health* underwriting, *non-life* underwriting risk modules. 
+The Solvency prescribed correlation matrix $\Sigma$ is given in Figure \@ref(fig:solvency).
+
+```{r solvency, echo=FALSE, message=FALSE, out.width='50%', fig.align='center', fig.cap='Solvency correlation matrix for the calculation of the  Solvency Capital Requirement (SCR) Standard Formula, which displays in each cell the correlation between two variables of the Solvency II regulation risk module vector composed by: non-life underwriting risk, life underwriting risk, health underwriting risk, market risk, counterparty default risk.'}
+
+library(corrplot)
+
+## Define the Solvency correlation matrix
+table_matrix = matrix(c(1, 0.25, 0.25, 0.25, 0.25,
+                         0.25, 1, 0.25, 0.25, 0.5,
+                         0.25, 0.25, 1, 0.25, 0,
+                         0.25, 0.25, 0.25, 1, 0,
+                         0.25, 0.5, 0, 0, 1), nrow = 5, byrow = TRUE)
+
+## Create the row and column names
+rownames(table_matrix) = c("Market", "Default", "Life", "Health", "Non Life")
+colnames(table_matrix) = c("Market", "Default", "Life", "Health", "Non Life")
+
+## Display the correlation matrix
+corrplot(table_matrix, method = "number", type = "full", tl.col = "black", 
+         col = "black", addCoef.col = "black", cl.pos = "n", order = "original")
+```
+
+One might be tempted to provide some naive conclusions from the null terms of the matrix, like the fact that Non-life and Life risks are independent. Ignoring whether this was also the aim of the regulator, we remark again that, in the absence of further assumptions about the joint distribution of $(X_1,\dots,X_5)'$, one can only state that Non-life and Life risks are uncorrelated (if this can be of some use). This highlights once more the limited use of a correlation matrix outside the context of a well-specified, possibly linear, probabilistic model.
+
+The Solvency Capital Requirements are the amount of funds that insurance and reinsurance companies are required to hold under the European Union's Solvency II directive in order to have a 99.5% yearly confidence level, so that they could expect to survive the most extreme losses over the course of 500 years; in other words, the $\VaR$ of the aggregate loss $X_1+\dots+X_5$ computed at the probability level $\alpha=0.995$.
+
+A common practice within risk management departments, in order to determine more conservative capital requirements, consists in arbitrarily increasing the correlation between some risks $X_i$ and $X_j$ of the Solvency correlation matrix. This practice is likely based on the wrong belief that by increasing the values of the correlation matrix, the VaR of the final position (sum) will be automatically augmented. As noticed in Mistake 4, this is not true.
+
+Moreover, one cannot arbitrarily change the values in a correlation matrix: even preserving the symmetry of the matrix and the positiveness of its entries, slightly increasing a few correlation values might infringe the condition of positive semidefiniteness, as the following example shows.
+
+::: {.example}
+Suppose that an insurance company, for the purpose of stress-testing, changes the correlation between the health underwriting risk module and the market, default, and life underwriting risk module from 0.25 to 0.7, with the naive aim of obtaining stricter Solvency Capital Requirements (this potential outcome very much depends on the full model used).
+Before estimating the new regulatory capital coming from the model change, the company should definitely check whether the new matrix is positive semidefinite, by computing its eigenvalues (for instance via the \textsf{R} function \textsf{eigen}). If the eigenvalues of the new correlation matrix are all non-negative, then the matrix is positive semidefinite; see Theorem \@ref(thm:eigen). If just one eigenvalue is negative, the model (and the implied regulatory capital) should be disregarded as not consistent.
+
+```{r stress1, echo = FALSE, out.width='50%', fig.align='center', fig.cap='Solvency Capital Requirement correlation matrix - stress test 1.'}
+library(corrplot) 
+library(knitr) 
+library(kableExtra) 
+## Define the stress-test correlation matrix
+stress_matrix = table_matrix
+## Modify some off-diagonal values
+stress_matrix[4, 1] = 0.7  
+stress_matrix[4, 2] = 0.7  
+stress_matrix[4, 3] = 0.7  
+stress_matrix[1, 4] = 0.7  
+stress_matrix[2, 4] = 0.7  
+stress_matrix[3, 4] = 0.7  
+## Highlight modified values in red
+color_matrix = ifelse(stress_matrix < 0.7, "red", "black")
+## Display the correlation matrix with modified colors
+corrplot(stress_matrix, method = "number", type = "full", tl.col = "black", 
+         col = color_matrix, addCoef.col = "black", cl.pos = "n", order = "original")
+## Calculate the eigenvalues
+eigen_values = eigen(stress_matrix)$values
+eigenvalues = t(eigen_values) #transpose of eigenvalues
+
+## Set eigenvalues column names
+colnames(eigenvalues) = c("Eigenvalue 1", "Eigenvalue 2", "Eigenvalue 3", 
+                           "Eigenvalue 4", "Eigenvalue 5")
+## Print eigenvalues table 
+kbl(eigenvalues, align="c", booktabs=TRUE, caption="Eigenvalues - stress test 1.") %>%
+  kable_classic(full_width = FALSE) %>%
+  kableExtra::kable_styling(latex_options ="striped") %>%
+  kableExtra::kable_styling(latex_options = "hold_position")
+```
+
+One of the eigenvalues of the correlation matrix displayed in Figure \@ref(fig:stress1) is negative. As a consequence, the new correlation matrix is no more positive semidefinite. In Figure \@ref(fig:stress2) we show other stress tests in which the newly obtained matrices are not positive definite: the probabilistic models underlying such matrices are simply wrong.
+
+```{r stress2, echo = FALSE, message=FALSE, out.width='80%', fig.align='center', fig.cap='Two stress-tested false correlation matrices.'}
+library(corrplot)
+
+### FIRST STRESSED MATRIX
+rho1=0.75 # new correlation value
+## Modify some off-diagonal values
+stress_matrix[1, 5] = rho1  
+stress_matrix[2, 5] = rho1  
+stress_matrix[5, 1] = rho1
+stress_matrix[5, 2] = rho1 
+## Highlight modified values in red
+color_matrix = ifelse(stress_matrix == rho1, "red", "black")
+## Display the correlation matrix with modified colors
+par(mfrow = c(1, 2), pty="s", font.main=3)
+corrplot(stress_matrix, method = "number", type = "full", tl.col = "black", 
+         col = color_matrix, addCoef.col = "black", cl.pos = "n", order = "original")
+
+## Calculate eigenvalues to check that at least one of them is negative
+## eigen_values = eigen(stress_matrix)$values
+
+### SECOND STRESSED MATRIX
+stress_matrix2 = stress_matrix # second correlation matrix
+rho2=0.80 # new correlation value
+## Modify some off-diagonal values
+stress_matrix2[1, 2] = rho2
+stress_matrix2[1, 4] = rho2
+stress_matrix2[2, 1] = rho2
+stress_matrix2[4, 1] = rho2  
+## Highlight modified values in red
+color_matrix = ifelse(stress_matrix2 < rho2, "red", "black")
+## Display the correlation matrix with modified colors
+corrplot(stress_matrix2, method = "number", type = "full", tl.col = "black", 
+         col = color_matrix, addCoef.col = "black", cl.pos = "n", order = "original")
+## Calculate eigenvalues to check that at least one of them is negative
+## eigen_values2 = eigen(stress_matrix2)$values
+```
+
+The bad habit not to check whether a matrix is positive definite (that is if it has non-negative eigenvalues) likely originates from the fact that in a $2 \times 2$ correlation matrix, the off-diagonal element $\rho_{12}=\rho_{21}$ can be any number between $-1$ and $1$ (the matrix will remain positive semidefinite).
+As the next pedagogical example shows, for a $3 \times 3$ case symmetric matrix having positive entries between $-1$ and $1$, this is no more true.
+
+
+::: {.example}
+We build a $3 \times 3$ symmetric matrix having positive random entries between $-1$ and $1$ and not being positive definite, and we show it in Figure \@ref(fig:3x3).
+
+```{r 3x3, echo = TRUE, out.width='30%', fig.align='center', fig.cap='A  symmetric matrix with entries between 0 and 1 which is not positive semidefinite.'}
+library(corrplot) 
+set.seed(100) # seed for reproducibility
+## Generate a symmetric matrix with random entries in (0,1)
+## until finding one not being positive semidefinite
+success<-FALSE
+  while(!success){
+  a=round(runif(3),3) # draw three random entries in (0,1)
+  ## Create a symmetric 3x3 matrix with such entries
+  A=matrix(c(1, a[1], a[2], 
+          a[1], 1, a[3], 
+          a[2], a[3], 1), nrow = 3, byrow = TRUE)
+  rownames(A)=c(" ", " ", " ")
+  colnames(A)=c(" ", " ", " ")
+  eigen_values=eigen(A)$values # compute eigenvalues 
+  ## Repeat until one eigenvalue is negative
+  success<-length(eigen_values[eigen_values<0])>0
+  }
+## Display the false correlation matrix 
+corrplot(A,method="number",type="full",tl.col="black", 
+col=color_matrix,addCoef.col="black",cl.pos="n",
+order="original",number.cex=3)
+```
+:::
+
+Another important issue here is that if the marginals are specified (as often in SCR), then positive semidefiniteness is no longer sufficient for a matrix to be a covariance matrix with the specific marginals (unless it is in a family of distributions like the multivariate Normal). This is a notoriously difficult problem. Even the determination of covariance matrices of standard uniform marginals (i.e., rank correlation matrices) seems to be out of computational reach and we know that it differs from  positive semidefiniteness in dimension 12 or higher; see @WWW19.
+
+> Key message: Check the eigenvalues of your correlation matrix before use!
+
+#### Acknowledgements {-}
+
+The mistakes illustrated in this chapter have been collected from students and practitioners attending the Risk Management courses held by the author. A special thank goes to Giacomo Cagliani who wrote some of the R codes accompanying this chapter and presented some of the mistakes in his Master thesis dissertation.
+An excerpt of this chapter is available as a standalone paper at [*SSRN*](https://dx.doi.org/10.2139/ssrn.5155665).
+
+\clearpage
+
+## Exercises
+
+::: {.exercise #lognormcorr}
+Produce a plot analogous to Figure \@ref(fig:maxmincorr) and Figure \@ref(fig:logncorr) showing the maximal and minimal value attainable by Pearson’s correlation coefficient between $X \sim Pa(3)$ and $Y\sim Pa(\theta)$, for $2<\theta<3$.
+:::
+
+::: {.exercise}
+Knowing that for $X\sim\text{LogNormal}$($\mu, \sigma^2$) distribution one has
+$$
+\mathbb{E}(X)=e^{\mu+\frac{\sigma^2}{2}},\quad \text{var}(X)=e^{2\mu+\sigma^2}\left(e^{\sigma^2}-1\right),
+$$
+compute analytically the values in \@ref(eq:lognormal) and double-check the values in Table \@ref(tab:tablecor).
+:::
+
+::: {.exercise}
+Write an \textsf{R} function to compute (via $N$ simulations) the minimal and maximal value attainable by Pearson's correlation between one Exponential $Exp(1)$ and one Student's t $t_{\nu}(0,1)$ random variables. The number of degrees of freedom parameter $v$ of the Student's t is accepted as input (so beware of the conditions to be imposed on $\nu$). Do you expect the above values to be, respectively, $-1$ and $1$? Give a mathematical explanation.  
+:::
+
+::: {.exercise}
+Assume that the random variables $X$ and $Y$ both have a Student's t distribution $t_{\nu}(\mu,\sigma)$, with $\nu=2.5$, $\mu=2$ and $\sigma=2$.
+
+- Write the explicit model under which the *maximal* value of  Pearson's correlation between $X$ and  $Y$ is attained. Is this value exactly 1,  less than 1, or greater than 1?
+
+- Write the explicit model under which the *minimal* value of  Pearson's correlation between $X$ and  $Y$ is attained.
+Is this value exactly -1,  less than -1, or greater than -1? 
+:::
+
+::: {.exercise}
+Write if the following statements are TRUE or FALSE and motivate your answer. $X,Y$ are random variables with finite variance.
+
+- If the linear correlation between $X$ and $Y$ is equal to 1, then $X$ and $Y$ are comonotonic.
+
+- If $X$ and $Y$ are countermonotonic, then the linear correlation between $X$ and $Y$ is equal to $-1$.
+
+- If the rank correlation between $X$ and $Y$ is equal to 1, then $X$ and $Y$ are comonotonic.
+
+- If $X$ and $Y$ are countermonotonic, then the rank correlation between $X$ and $Y$ is equal to $-1$.
+
+- If $X\sim Pa(\theta_1)$ and $X\sim Pa(\theta_2)$, with $2<\theta_1\leq\theta_2$ then the maximal correlation between $X$ and $Y$ cannot be $1$.
+
+- If $X\sim Pa(\theta_1)$ and $X\sim Pa(\theta_2)$, with $2<\theta_1\leq\theta_2$ then the minimal correlation between $X$ and $Y$ cannot be $-1$.
+
+-  If the Value-at-Risk of $X+Y$ is maximal (given their marginal distributions), then $X$ and $Y$ are comonotonic.
+
+-  If $X$ and $Y$ are identically distributed like a $N(0,1)$ and independent, then $$\VaR(X+Y) \leq \VaR(X)+\VaR(Y), \; \alpha \in (0,1).$$ 
+
+-  If $X$ and $Y$ are identically distributed like a $N(0,1)$ and comonotonic, then $$\VaR(X+Y) \leq \VaR(X)+\VaR(Y) \; \alpha \in (0,1).$$ 
+:::
+
+::: {.exercise}
+Assume that $X\sim N(0,1)$ and $Y$ has a LogNormal distribution, specifically assume that $\ln Y$ has the same distribution of $X$. 
+
+- Write the explicit model under which the *maximal* value of  Pearson's correlation between $X$ and  $Y$ is attained. Is this value exactly 1,  less than 1, or greater than 1?
+
+- Write the explicit model under which the *minimal* value of  Pearson's correlation between $X$ and  $Y$ is attained. Is this value exactly -1,  less than -1, or greater than -1?
+
+- Write an \textsf{R} code to compute (via $N$ simulations) the minimal and maximal possible value of Pearson's correlation between $X$ and $Y$ and doublecheck your previous answers.
+:::
+
+::: {.exercise}
+Suppose that the random losses $Y_1$ and $Y_2$ have both a LogNormal distribution $\text{LogN}(0, \sigma^2_i), i=1,2,$
+with different parameters $\sigma_1>0$ (for  $Y_1$) and $\sigma_2>0$ (for $Y_2$),  with $\sigma_2 \geq \sigma_1$.
+This means that 
+$$
+\log Y_1 = X_1 \sim N(0,\sigma^2_1)\quad \text{ and }\quad \log Y_2=X_2 \sim N(0,\sigma^2_2).
+$$
+
+- Assuming that the correlation between $Y_1$ and $Y_2$ is *maximal*, compute $\VaR(Y_1+Y_2)$.
+
+- Is it possible that the correlation between $Y_1$ and $Y_2$ is exactly $1$? Explain your answer. 
+
+- Is it possible that the correlation between $Y_1$ and $Y_2$ is exactly $-1$? Explain your answer.
+:::
+
+::: {.exercise}
+Assume $X$ and $Y$ are identically distributed like a standard exponential $Exp(1)$
+
+- Write the explicit model under which the *maximal* value of  Pearson's correlation between $X$ and  $Y$ is attained. What is such maximal value?
+
+- Write the explicit model under which the *minimal* value of  Pearson's correlation between $X$ and  $Y$ is attained (use the stochastic representation of both random variables as a function of $U(0,1)$. Write an \textsf{R code} to compute such minimal value by numerical integration.
+::: 
