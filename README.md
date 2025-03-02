@@ -4,7 +4,7 @@ Sources and extra materials for the wannabe book
 Giovanni Puccetti
 
 **Quantitative Risk Management: a brief course.**
-(chaper numbering will vary during completion)
+(chapter numbering will vary during completion)
 
 **Chapter 1** 
 "Correlation: the most common mistakes made in Risk Management practice"
