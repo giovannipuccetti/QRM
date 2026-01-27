@@ -12,7 +12,7 @@ X=(X-mean(X))/sd(X)
 Y=(Y-mean(Y))/sd(Y)
 ## Compute sample mean of X and Y
 c(mean(X),mean(Y))
-## [1] 1.312969e-18 1.405993e-18
+## [1] 3.952394e-17 -1.332268e-17
 ## Compute sample variance of X and Y
 c(var(X),var(Y))
 ## [1] 1 1
