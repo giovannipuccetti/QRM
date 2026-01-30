@@ -4,6 +4,6 @@ Giovanni Puccetti and Giacomo Cagliani
 
 **Correlation: the most common myths in financial risk management practice**
 
-- paper in pdf format is included in the main branch
+- the paper in pdf format can be downloaded from https://ssrn.com/abstract=5155665
 
 - R code for all figures is included in the main branch
